@@ -233,4 +233,9 @@ contract Staking {
         uint256 earnings = amount * ratePerSecond * timeElapsed;
         return earnings;
     }
+
+    function getEarningsPublic(uint256 stakeId) public view returns (uint256) {
+        Stake storage stakeEarn = getStakeById(stakeId);
+        return getEarnings(stakeEarn);
+    }
 }
