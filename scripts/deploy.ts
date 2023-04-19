@@ -1,8 +1,12 @@
 import { ethers } from "hardhat";
 
 async function main() {
+  // Replace this with the actual token address
+  const tokenAddress = "0xYourTokenAddressHere";
+  // Deploy the Staking contract
   const Staking = await ethers.getContractFactory("Staking");
-  const staking = await Staking.deploy();
+  const staking = await Staking.deploy(tokenAddress);
+  // Wait for the contract to be deployed
   await staking.deployed();
 
   console.log("Staking contract deployed at:", staking.address);

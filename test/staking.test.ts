@@ -62,14 +62,18 @@ describe("Staking", () => {
                 .to.emit(Staking, "Unstaked")
                 .withArgs(addr1Address, stakeAmount);
 
+            // Confirm that the stake was actually unstaked
+            const addr1StakesAfter = await Staking.getStakes(addr1Address);
+            expect(addr1StakesAfter.length).to.equal(0);
 
+            // Confirm that the correct amount was transferred back to the user
             const addr1Balance = await Staking.balanceOf(addr1Address);
             expect(addr1Balance).to.equal(0);
 
             const addr1Earnings = await Staking.earningsOf(addr1Address);
             expect(addr1Earnings).to.equal(stakeAmount.mul(20).mul(30).div(365));
         });
-
     });
+
 
 });

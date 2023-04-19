@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 /**
  * @title Staking
  * @dev A contract for staking tokens with variable interest rates.
@@ -37,6 +39,7 @@ contract Staking {
     uint256 public nextStakeId;
     uint256[] public durations;
     mapping(uint256 => uint256) public interestRates;
+    IERC20 public token;
 
     /// @dev Emitted when a user stakes
     event Staked(
@@ -52,14 +55,15 @@ contract Staking {
     /// @dev Emitted when a stake expires
     event ExpiredStake(address indexed user, uint256 amount, uint256 earnings);
 
-    /// @notice Initializes the contract with owner, enabled status, and default interest rates
-    constructor() {
+    /// @notice Initializes the contract with owner, enabled status, and default interest rates and token
+    constructor(IERC20 _token) {
         owner = msg.sender;
         enabled = true;
         durations = [30 days, 60 days, 90 days];
         interestRates[30 days] = 20;
         interestRates[60 days] = 30;
         interestRates[90 days] = 90;
+        token = _token;
     }
 
     /// @dev Modifier to ensure only the contract owner can call a function
@@ -76,9 +80,9 @@ contract Staking {
 
     /// @notice Allows a user to stake an amount for a specified duration
     /// @param durationIndex The index of the staking duration in the durations array
-    function stake(uint256 durationIndex) external payable isEnabled {
+    /// @param amount The amount of tokens to stake
+    function stake(uint256 durationIndex, uint256 amount) external isEnabled {
         require(durationIndex < durations.length, "Invalid duration index");
-        uint256 amount = msg.value;
         require(amount > 0, "Amount must be greater than zero");
         uint256 duration = durations[durationIndex];
         uint256 interestRate = interestRates[duration];
@@ -96,6 +100,7 @@ contract Staking {
         stakesOf[msg.sender].push(newStake);
         totalStaked += amount;
         balanceOf[msg.sender] += amount;
+        token.transferFrom(msg.sender, address(this), amount);
         emit Staked(msg.sender, amount, duration, interestRate);
     }
 
@@ -119,9 +124,11 @@ contract Staking {
         balanceOf[msg.sender] -= amount;
         earningsOf[msg.sender] += getEarnings(stakeToUnstake);
         stakeToUnstake.released = true;
+        token.transfer(msg.sender, amount);
         emit Unstaked(msg.sender, amount);
     }
 
+    /*
     /// @notice Allows a user to withdraw their earnings
     function withdrawEarnings() external {
         uint256 earnings = earningsOf[msg.sender];
@@ -129,6 +136,7 @@ contract Staking {
         earningsOf[msg.sender] = 0;
         payable(msg.sender).transfer(earnings);
     }
+    */
 
     /// @notice Disables the contract (only callable by the owner)
     function disable() external onlyOwner {
