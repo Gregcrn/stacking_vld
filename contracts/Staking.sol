@@ -128,6 +128,13 @@ contract Staking {
         emit Unstaked(msg.sender, amount);
     }
 
+    /// @notice Allows the owner to withdraw all ERC20 tokens to a specified address in case of emergency
+    /// @param to The address to which the tokens will be withdrawn
+    function emergencyWithdraw(address to) external onlyOwner {
+        uint256 tokenBalance = token.balanceOf(address(this));
+        token.transfer(to, tokenBalance);
+    }
+
     /*
     /// @notice Allows a user to withdraw their earnings
     function withdrawEarnings() external {
